@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/ml-sinav-kampi/index.html" },
+    { "source": "/:path*", "destination": "/ml-sinav-kampi/:path*" }
+  ]
+}

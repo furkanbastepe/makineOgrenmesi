@@ -1,0 +1,10 @@
+# Uygulama dışı kaynak dosyaları deploy'a dahil etme (sadece ml-sinav-kampi/ gerekli)
+*.ppt
+*.pptx
+*.pdf
+DT.md
+KNN.md
+SVM.md
+RYZ108_TUM_KONULAR.md
+makineOgrenmesi_Not
+extract_pptx.py
