@@ -1,0 +1,437 @@
+# RYZ108 MAKİNE ÖĞRENMESİ — SINAV ÇALIŞMA REHBERİ
+### Sıfırdan 100'e: Klasik + Boşluk Doldurma sınavına tam puan rehberi
+
+> Bu rehber 5 kaynağın tamamından (KNN, SVM, Karar Ağaçları, ana konu sunumu, kod notları) ve sınava giren arkadaşlarının verdiği ipuçlarından süzülerek, **sınavda gerçekten sorulan şeylere** göre önceliklendirildi. Sırayla çalış; her bölümün sonunda ezberlenecekler ve mini test var.
+
+---
+
+## ÖNCELİK HARİTASI — Neye ne kadar çalışacaksın?
+
+| Öncelik | Konu | Soru tipi | Bu rehberdeki bölüm |
+|---|---|---|---|
+| ⭐⭐⭐ EN KRİTİK | **Öklid uzaklığı + KNN ile sınıflandırma** | Tablo verilir, hesaplarsın | A1 |
+| ⭐⭐⭐ EN KRİTİK | **Confusion Matrix + F1 (neden accuracy'den iyi?)** | Hesap + yorum | A2 |
+| ⭐⭐ ÇOK ÖNEMLİ | **Overfitting / Underfitting / Dengeli — 3 model hangisi?** | Yorum | B1 |
+| ⭐⭐ ÇOK ÖNEMLİ | **K-Means: küme sayısı nasıl belirlenir? (Elbow)** | Tanım/yorum | B2 |
+| ⭐⭐ ÇOK ÖNEMLİ | **Öğrenme türleri + algoritma eşleştirme** | Boşluk doldurma | B3 |
+| ⭐ ÖNEMLİ | **SVM kavramları** (hiperdüzlem, marjin, C, kernel) | Tanım/boşluk | C1 |
+| ⭐ ÖNEMLİ | **Karar Ağacı kavramları** (kök/düğüm/yaprak, bilgi kazancı) | Tanım/boşluk | C2 |
+| ⭐ ÖNEMLİ | **Regresyon metrikleri** (MAE/MSE/RMSE/R²) | Eşleştirme/tanım | D |
+| ➕ EK PUAN | Diğer tanımlar (CV, normalizasyon, sigmoid, Apriori...) | Boşluk | E |
+
+> **Sınav notu:** Arkadaşların "makinede kod sormadı" dedi. Yani odak **kavram + hesap + tanım**. Kod ezberine değil, mantığa çalış.
+
+---
+
+# BÖLÜM A — HESAPLAMA SORULARI (puanın yarısı burada)
+
+## A1. ÖKLİD UZAKLIĞI + KNN ⭐⭐⭐ (en olası soru)
+
+### KNN nedir? (tek cümlelik tanım)
+**K-En Yakın Komşu (KNN)**, yeni bir veri noktasını, kendisine **en yakın k komşunun** sınıfına bakıp **çoğunluk oyu** ile sınıflandıran, **denetimli (gözetimli)** bir öğrenme algoritmasıdır. Hem sınıflandırma hem regresyonda kullanılır. "Benzerlik/uzaklık" temellidir → **tembel öğrenir** (eğitim süresi yok, her tahminde tüm uzaklıkları hesaplar).
+
+### Öklid uzaklığı formülü — EZBERLE
+İki nokta P=(x₁, y₁) ve Q=(x₂, y₂) arasındaki uzaklık:
+
+```
+d = √[ (x₂ − x₁)² + (y₂ − y₁)² ]
+```
+
+n boyut için genel hâli:
+
+```
+d = √[ Σ (xᵢ − yᵢ)² ]      (tüm boyutların farklarının karesi toplanır, kökü alınır)
+```
+
+**Mantık:** Pisagor teoremi. İki noktanın koordinat farklarının karelerini topla, karekökünü al.
+
+### KNN algoritması — 6 ADIM (boşluk doldurmada sıralanması istenebilir)
+1. Komşu sayısı **k** seçilir.
+2. Yeni noktanın **tüm** veri noktalarına **Öklid uzaklığı** hesaplanır.
+3. Uzaklıklar **küçükten büyüğe sıralanır**, en yakın **k** tanesi alınır.
+4. Bu k komşunun her sınıftan kaç tane olduğu **sayılır**.
+5. Yeni nokta, **çoğunluğun bulunduğu** sınıfa atanır.
+6. Model hazır.
+
+---
+
+### 🧮 ÖRNEK 1 (TAM ÇÖZÜM) — Parlaklık/Doyma tablosu
+**Soru:** Aşağıdaki ışıkların sınıfları belli. Dışarıdan **parlaklık=20, doyma=35** olan yeni bir ışık geldi. **k=5** için hangi sınıfa girer? (Öklid)
+
+| Parlaklık (X) | Doyma (Y) | Sınıf |
+|---|---|---|
+| 40 | 20 | Kırmızı |
+| 50 | 50 | Mavi |
+| 60 | 90 | Mavi |
+| 10 | 25 | Kırmızı |
+| 70 | 70 | Mavi |
+| 60 | 10 | Kırmızı |
+| 25 | 80 | Mavi |
+
+**Yeni nokta: (20, 35)**
+
+**Adım 2 — Her satıra Öklid uzaklığı:**
+
+| Nokta | Hesap | Uzaklık |
+|---|---|---|
+| (40,20) | √[(20−40)²+(35−20)²] = √[400+225] = √625 | **25.00** (Kırmızı) |
+| (50,50) | √[(20−50)²+(35−50)²] = √[900+225] = √1125 | **33.54** (Mavi) |
+| (60,90) | √[(20−60)²+(35−90)²] = √[1600+3025] = √4625 | **68.01** (Mavi) |
+| (10,25) | √[(20−10)²+(35−25)²] = √[100+100] = √200 | **14.14** (Kırmızı) |
+| (70,70) | √[(20−70)²+(35−70)²] = √[2500+1225] = √3725 | **61.03** (Mavi) |
+| (60,10) | √[(20−60)²+(35−10)²] = √[1600+625] = √2225 | **47.17** (Kırmızı) |
+| (25,80) | √[(20−25)²+(35−80)²] = √[25+2025] = √2050 | **45.28** (Mavi) |
+
+**Adım 3 — Küçükten büyüğe sırala, en yakın k=5'i al:**
+1. 14.14 → **Kırmızı**
+2. 25.00 → **Kırmızı**
+3. 33.54 → Mavi
+4. 45.28 → Mavi
+5. 47.17 → **Kırmızı**
+
+**Adım 4–5 — Oyla:** Kırmızı = 3, Mavi = 2 → **Çoğunluk Kırmızı.**
+
+> ✅ **CEVAP: Yeni ışık KIRMIZI sınıfına girer.**
+
+---
+
+### 🧮 ÖRNEK 2 (TAM ÇÖZÜM) — (X, Y, Z=sınıf) tablosu
+**Soru:** Yeni gözlem **(7, 3)**. **k=4** için sınıfı nedir? (Öklid)
+
+| X | Y | Sınıf (Z) |
+|---|---|---|
+| 1 | 3 | Negatif |
+| 2 | 5 | Pozitif |
+| 2 | 3 | Pozitif |
+| 3 | 9 | Negatif |
+| 4 | 7 | Negatif |
+| 5 | 2 | Pozitif |
+| 6 | 8 | Pozitif |
+| 8 | 6 | Negatif |
+| 10 | 6 | Negatif |
+| 9 | 1 | Negatif |
+
+**Uzaklıklar (7,3 noktasına):**
+
+| Nokta | Hesap | Uzaklık | Sınıf |
+|---|---|---|---|
+| (1,3) | √[36+0] | 6.00 | Negatif |
+| (2,5) | √[25+4] | 5.39 | Pozitif |
+| (2,3) | √[25+0] | 5.00 | Pozitif |
+| (3,9) | √[16+36] | 7.21 | Negatif |
+| (4,7) | √[9+16] | 5.00 | Negatif |
+| **(5,2)** | √[4+1] | **2.24** | **Pozitif** |
+| (6,8) | √[1+25] | 5.10 | Pozitif |
+| **(8,6)** | √[1+9] | **3.16** | **Negatif** |
+| **(10,6)** | √[9+9] | **4.24** | **Negatif** |
+| **(9,1)** | √[4+4] | **2.83** | **Negatif** |
+
+**En yakın k=4:** (5,2)=2.24 Pozitif, (9,1)=2.83 Negatif, (8,6)=3.16 Negatif, (10,6)=4.24 Negatif
+→ **1 Pozitif, 3 Negatif → Çoğunluk Negatif.**
+
+> ✅ **CEVAP: (7,3) noktasının sınıfı NEGATİF'tir.**
+
+---
+
+### Diğer uzaklık ölçütleri (boşluk doldurmada çıkabilir — sadece tanı)
+
+| Ölçüt | Formül | Mantık |
+|---|---|---|
+| **Öklid** | √[Σ(xᵢ−yᵢ)²] | Düz çizgi (kuş uçuşu) mesafe. **En sık kullanılan.** |
+| **Manhattan** | Σ\|xᵢ−yᵢ\| | Farkların **mutlak değerleri toplamı** (şehir ızgarası). |
+| **Chebyshev** | max\|xᵢ−yᵢ\| | Farkların mutlak değerinin **maksimumu**. |
+| **Minkowski** | (Σ\|xᵢ−yᵢ\|ᵖ)^(1/p) | **Genelleştirilmiş** ölçüt. |
+
+**Minkowski özel durumları — KLASİK BOŞLUK DOLDURMA:**
+- **p = 1** → **Manhattan**
+- **p = 2** → **Öklid**
+- **p → ∞** → **Chebyshev**
+
+> Ekstra: **Dilca**, kategorik (sayısal olmayan) öznitelikler arasındaki uzaklığı ölçer. **Simetrik Belirsizlik Katsayısı (SU)**, bilgi kazancını öznitelik entropilerinin toplamına bölerek normalize eder (bilgi kazancının "yüksek değerlilere taraflı olma" sorununu çözer).
+
+---
+
+### "k" değeri nasıl seçilir? (sık çıkan yorum sorusu)
+- **k çok küçük (k=1):** Modeli **ezberletir → OVERFITTING.** Gürültüye çok duyarlı.
+- **k çok büyük:** Sonuçlar **fazla genelleşir → UNDERFITTING.** Sınıf detayı kaybolur.
+- **Eşitlik (tie) olmaması için** ikili sınıflandırmada **tek sayı** (k=3, 5, 7...) seçilir.
+- **Sabit bir k yoktur**; en iyi k **Çapraz Doğrulama (Cross-Validation)** ile, deneme-yanılmayla bulunur.
+- **Büyük/gürültülü veri** → daha büyük k uygundur.
+
+> Slayttaki kanıt: aynı veri için **k=3 → Sınıf2**, **k=7 → Sınıf1** çıkabilir. Yani k tahminin sonucunu **doğrudan** değiştirir.
+
+**Ağırlıklı oylama (weighted voting):** Eşitlik durumunda veya kararı güçlendirmek için, **daha yakın komşuya daha fazla ağırlık** verilir (genelde 1/uzaklık). Sınıf başına ağırlıklar toplanır, en yüksek toplam ağırlığa sahip sınıf seçilir.
+
+### KNN avantaj / dezavantaj (boşluk doldurma)
+- **Avantaj:** Basit/anlaşılır; **eğitim süresi yok**; parametrik değildir (non-parametrik); çok sınıf ve çok boyutu destekler.
+- **Dezavantaj:** **Yüksek hesaplama maliyeti** (her tahminde tüm uzaklıklar); **ölçeklendirmeye duyarlı** (büyük değerli özellik diğerlerini ezer); gürültüye/dengesiz veriye duyarlı; tüm veriyi bellekte tutar.
+
+---
+
+## A2. CONFUSION MATRIX + METRİKLER ⭐⭐⭐ (F1 vurgulu)
+
+### TP / TN / FP / FN — ÖNCE BUNLARI EZBERLE
+Hep şu kalıpla düşün: **birinci harf** tahmin doğru muydu (T=True/doğru, F=False/yanlış), **ikinci harf** ne dedik (P=Positive/var, N=Negative/yok).
+
+| Terim | Açılım | Türkçe mantık | Doğru mu? |
+|---|---|---|---|
+| **TP** | True Positive | **Var'a var** dedik, gerçekten var | ✅ Doğru |
+| **TN** | True Negative | **Yok'a yok** dedik, gerçekten yok | ✅ Doğru |
+| **FP** | False Positive | **Yok'a var** dedik (yanlış alarm) | ❌ Yanlış |
+| **FN** | False Negative | **Var'a yok** dedik (kaçırdık) | ❌ Yanlış |
+
+### Matris yerleşimi (slayttaki örnek — bunu kafana çiz)
+
+```
+                          TAHMİN
+                   YOK              VAR          TOPLAM
+   ┌─────────┬──────────────┬──────────────┬──────────┐
+G  │  YOK    │   TN = 100   │   FP = 20    │   120    │
+E  ├─────────┼──────────────┼──────────────┼──────────┤
+R  │  VAR    │   FN = 10    │   TP = 200   │   210    │
+Ç  ├─────────┼──────────────┼──────────────┼──────────┤
+E  │ TOPLAM  │     110      │     220      │   330    │
+K  └─────────┴──────────────┴──────────────┴──────────┘
+```
+
+- **Esas (ana) köşegen = TN + TP = doğru tahminler** (sol-üst ↘ sağ-alt).
+- **Yedek köşegen = FP + FN = yanlış tahminler.**
+
+### Tüm formüller + örnek hesap (TP=200, TN=100, FP=20, FN=10, Toplam=330)
+
+| Metrik | Formül | Hesap | Sonuç |
+|---|---|---|---|
+| **Accuracy (Doğruluk)** | (TP+TN)/Toplam | (200+100)/330 | **0.91** |
+| **Hata Oranı** | (FP+FN)/Toplam = 1−Acc | 30/330 | **0.09** |
+| **Precision (Kesinlik)** | TP/(TP+FP) | 200/220 | **0.91** |
+| **Recall = Sensitivity (Duyarlılık)** | TP/(TP+FN) | 200/210 | **0.95** |
+| **Specificity (Seçicilik)** | TN/(TN+FP) | 100/120 | **0.83** |
+| **FPR (Yanlış Pozitif Oranı)** | FP/(TN+FP) | 20/120 | **0.17** |
+| **F1-Score** | 2·(P·R)/(P+R) = **2TP/(2TP+FP+FN)** | 400/430 | **0.93** |
+
+> **F1 için pratik formül:** `F1 = 2TP / (2TP + FP + FN)` → 2·200/(400+20+10)=400/430=**0.93**. Çok daha hızlı.
+
+**Ezber tanımlar:**
+- **Accuracy:** Tüm tahminler içinde doğruların oranı. "Esas köşegen / toplam."
+- **Precision (Kesinlik):** "Var" dediklerimin **kaçı gerçekten var?** → yanlış alarmı cezalandırır.
+- **Recall (Duyarlılık/Sensitivity):** Gerçek "var"ların **kaçını yakaladım?** → kaçırmayı cezalandırır.
+- **F1:** Precision ile Recall'ın **harmonik ortalaması** (ikisini birden dengeleyen tek skor).
+
+---
+
+### ⭐ F1 NEDEN ACCURACY'DEN İYİDİR? (klasik soru — net cevap)
+
+**Tek cümlelik cevap:** Çünkü **veri dengesiz (imbalanced) olduğunda accuracy yanıltır;** F1, Precision ve Recall'ı birlikte zorunlu kıldığı için modeli gerçekten ölçer.
+
+**Sayısal kanıt (ezberle, sınavda yaz):**
+1000 hastanın **990'ı sağlıklı, 10'u hasta** olsun. Model "herkes sağlıklı" desin:
+- **Accuracy = 990/1000 = %99** → kulağa mükemmel geliyor.
+- Ama **hiçbir hastayı yakalamadı:** TP=0 → **Recall=0, Precision=0 → F1=0.**
+
+Yani **%99 doğruluk tamamen işe yaramaz bir modeli "başarılı" gösterir;** F1 bu sahteliği anında ele verir. Bu yüzden:
+- **Sınıflar dengesizken** (az sayıda önemli sınıf: hastalık, dolandırıcılık, kusurlu ürün),
+- **Hem yanlış alarm (FP) hem kaçırma (FN) önemliyken**
+
+→ **F1 (veya Precision/Recall) tek başına Accuracy'den çok daha güvenilir bir metriktir.**
+
+### ROC / AUC (kısa)
+- **ROC eğrisi:** TPR (Recall) ile FPR'yi karşılaştıran olasılık eğrisi.
+- **AUC:** ROC altında kalan alan. **Büyük alan = iyi model.** En kötü **AUC=0.5** (rastgele), en iyi **AUC=1.0.**
+
+---
+
+# BÖLÜM B — KAVRAM / YORUM SORULARI
+
+## B1. OVERFITTING / UNDERFITTING / DENGELİ ⭐⭐ ("3 model hangisi?")
+
+| Durum | Eğitim (train) | Test | Belirti | Çözüm |
+|---|---|---|---|---|
+| **Overfitting (Aşırı Öğrenme)** | **ÇOK YÜKSEK** (~%99) | **DÜŞÜK** (~%70) | Büyük fark, ezberlemiş | Karmaşıklığı **azalt**: ağaçta `max_depth`↓, KNN'de `k`↑, SVM'de `C`↓ |
+| **Underfitting (Eksik Öğrenme)** | **DÜŞÜK** | **DÜŞÜK** | İkisi de kötü, çok basit | Karmaşıklığı **artır**: daha derin ağaç, `k`↓, `C`↑, daha çok özellik |
+| **Dengeli (Good Fit)** | Yüksek | **Yüksek ve train'e yakın** | Küçük fark — **İDEAL** | Bu modeli kullan |
+
+**Altın kural:**
+- **Train yüksek + Test düşük + büyük fark → OVERFITTING.**
+- **Train düşük + Test düşük → UNDERFITTING.**
+- **Train ≈ Test ve ikisi de yüksek → DENGELİ.**
+- Karar ağacı derinliği **None (sınırsız)** bırakılırsa → **kesin overfit.**
+
+### 🧠 "3 model verildi, hangisi hangisi?" — ÖRNEK
+| Model | Eğitim Doğruluğu | Test Doğruluğu | Teşhis |
+|---|---|---|---|
+| **A** | %99 | %72 | **Overfitting** (ezberlemiş, fark 27 puan) |
+| **B** | %65 | %63 | **Underfitting** (ikisi de düşük) |
+| **C** | %90 | %87 | **Dengeli / İyi** → **dağıtılacak/kullanılacak model bu** |
+
+> Soruda "hangisini canlıya alırsın?" derse cevap **dengeli olan** (C). "Hangisi ezberlemiş?" derse **A**.
+
+---
+
+## B2. K-MEANS + KÜME SAYISI (ELBOW) ⭐⭐
+
+### K-Means nedir?
+**Denetimsiz (gözetimsiz)** bir **kümeleme** algoritması. Veriyi, önceden belirlenen **K** adet kümeye, **benzerliklerine (mesafe)** göre ayırır. **Etiket (y) yoktur.**
+
+**Adımlar:** 1) K belirle → 2) Rastgele K merkez seç → 3) Her noktanın merkezlere uzaklığını hesapla → 4) Her noktayı **en yakın** merkeze ata → 5) Merkezleri yeniden hesapla → küme içi hata (varyans) minimum olana dek tekrarla.
+
+### ⭐ Küme sayısı (K) NASIL belirlenir? (kesin çıkan soru)
+
+**1) DİRSEK YÖNTEMİ (Elbow Method):**
+- Her K değeri (1, 2, ... 10) için **WCSS** hesaplanır.
+- **WCSS = küme içi hata** = noktaların kendi küme merkezine uzaklıklarının **kareleri toplamı.** (sklearn'de adı: **`inertia_`**)
+- WCSS, K'ya karşı grafiğe dökülür. **Hatadaki düşüşün aniden yavaşladığı, grafiğin "kol dirseği" gibi büküldüğü kırılma noktası = ideal K.**
+
+**2) SİLHOUETTE (Siluet) YÖNTEMİ:**
+- Her noktanın kendi kümesine ne kadar yakıştığını ölçer. Değer **−1 ile +1** arasında.
+- **+1'e en yakın** değeri veren K = en uygun K. (1 = mükemmel; 0 = sınırda; negatif = yanlış kümede)
+
+### ⭐ K-Means'te ÖLÇEKLENDİRME neden ZORUNLU?
+> **Standart cevap:** "K-Means **mesafeye dayalı** çalışır; **büyük değerli özelliklerin küçükleri ezmesini önlemek**, tüm özelliklere **eşit ağırlık** vermek için standartlaştırma zorunludur."
+
+**Kritik kod farkı:** K-Means **gözetimsizdir** → eğitilirken **hedef (y) verilmez**: `kmeans.fit(scaled_data)` (sadece X). Gözetimli modellerde ise `model.fit(X_train, y_train)`.
+
+---
+
+## B3. ÖĞRENME TÜRLERİ + ALGORİTMA EŞLEŞTİRME ⭐⭐ (boşluk doldurma altın madeni)
+
+| Tür | Tanım | Veri | Alt başlıklar | Örnek algoritmalar |
+|---|---|---|---|---|
+| **Denetimli (Supervised)** | Etiketli veriyle eğitilir; girdi-çıktı ilişkisi bilinir | **Etiketli** | Regresyon, Sınıflandırma | Doğrusal/Lojistik Regresyon, **KNN**, **Karar Ağacı**, **SVM** |
+| **Denetimsiz (Unsupervised)** | Etiketsiz veride yapı/desen bulunur | **Etiketsiz** | Kümeleme, İlişkilendirme | **K-Means**, Hiyerarşik Kümeleme, **Apriori** |
+| **Pekiştirmeli (Reinforcement)** | Deneme-yanılma + ödül ile öğrenir | Ödül sinyali | Karar verme | **Q-Learning**, TD-Learning, R-Learning |
+
+**Metrik eşleştirmesi (çok sorulur):**
+- **Sınıflandırma** → Accuracy, Precision, Recall, F1, AUC-ROC, **Confusion Matrix**
+- **Regresyon** → **MAE, MSE, RMSE, R²**
+- **Kümeleme** → Silhouette, Davies-Bouldin
+
+> 🔑 Boşluk doldurma tuzağı: **Lojistik Regresyon** ismi "regresyon" olsa da bir **SINIFLANDIRMA** algoritmasıdır (Sigmoid kullanır).
+
+---
+
+# BÖLÜM C — ALGORİTMA SLAYTLARI (tanım + boşluk)
+
+## C1. SVM (Destek Vektör Makineleri) ⭐
+
+**Tanım:** Sınıfları, aralarında **en geniş boşluğu (marjini) bırakan** bir sınır ile ayıran **denetimli** algoritma. Vapnik geliştirdi. Hem sınıflandırma hem regresyonda kullanılır.
+
+**Ezberlenecek 4 temel kavram:**
+- **Hiperdüzlem:** n boyutlu uzayı ikiye bölen, sınıfları ayıran karar sınırı. n boyutlu uzayda hiperdüzlem **(n−1) boyutludur** (2B'de **çizgi**, 3B'de **düzlem**). Denklem: **w·x + b = 0** (w=ağırlık/yön, b=bias/orijine uzaklık).
+- **Marjin:** Hiperdüzlem ile ona **en yakın noktalar** arasındaki **dik mesafe.** SVM **marjini MAKSİMİZE eder** (geniş marjin = iyi genelleme).
+- **Destek Vektörleri:** Hiperdüzleme **en yakın** veri noktaları. **Sadece bunlar** sınırı belirler; diğer veriler sınırı etkilemez.
+- **Hard vs Soft Marjin:** Hard = hiç yanlış sınıflandırmaya izin yok (idealize). **Soft = bazı hatalara izin verir**, gürültülü/ayrılamaz veride daha gerçekçi/dayanıklı.
+
+**Hiperparametreler:**
+- **C değeri:** Hata toleransını ayarlar. **C büyük → marjin DAR**, eğitime çok uyar → **overfit riski.** **C küçük → marjin geniş**, daha esnek, overfit azalır. → **Model overfit olursa C'yi AZALT.**
+- **Kernel (Çekirdek):** Veri **doğrusal ayrılamıyorsa**, veriyi **daha yüksek boyuta taşıyıp** orada doğrusal hâle getirir ("kernel trick").
+
+**Çoklu sınıf:** SVM temelde ikilidir; **One-vs-Rest (OvR)** ve **One-vs-One (OvO)** ile çoklu sınıf desteklenir.
+
+## C2. KARAR AĞAÇLARI (Decision Tree) ⭐
+
+**Tanım:** Bir soruna ilişkin tüm çözümleri **akış şeması** gibi haritalayan; iç düğümlerde **özellik testi** yapıp yapraklarda **karar** veren model. Denetimli; sınıflandırma + regresyon.
+
+**Yapı (ezberle):**
+- **Kök Düğüm (Root):** Tüm veriyi temsil eder, ağacın başlangıcı. Veriyi **maksimum bilgi kazancına** göre böler. En hayati özellik köktür.
+- **İç Düğüm (Internal Node):** Bir özelliğe göre veriyi alt kümelere böler. Bölme **saflık (purity) ve kazanç (gain)** ölçütüne göre yapılır.
+- **Yaprak Düğüm (Leaf):** Daha fazla bölünemeyen son düğüm; **nihai tahmin** burada (çoğunluk sınıfı veya ortalama değer).
+
+**Bölme ölçütü:** **Bilgi Kazancı (Information Gain)** — `criterion`: **gini** veya **entropy**.
+**Overfit kontrolü:** **`max_depth`** ile derinliği sınırla (None/sınırsız → ezberler).
+- **Avantaj:** Yorumlanması kolay/anlaşılır; **ölçeklendirme gerektirmez**; sürekli+ayrık veriyle çalışır.
+- **Dezavantaj:** Sürekli değer tahmininde zayıf; **kolay overfit** olur; sınıf çok/örnek az olunca başarısız.
+
+## C3. Özet: KNN vs Karar Ağacı vs SVM
+| | KNN | Karar Ağacı | SVM |
+|---|---|---|---|
+| Tür | Denetimli | Denetimli | Denetimli |
+| Mantık | En yakın k komşu | Özellik testleriyle dallanma | Marjini maks. hiperdüzlem |
+| Ölçeklendirme | **Şart** (mesafe) | Gerekmez | **Önemli** |
+| Overfit kontrolü | k'yı **artır** | `max_depth`'i **azalt** | C'yi **azalt** |
+
+---
+
+# BÖLÜM D — REGRESYON METRİKLERİ ⭐
+
+| Metrik | Açılım | Formül (mantık) | Not |
+|---|---|---|---|
+| **MAE** | Mean Absolute Error | (1/n)·Σ\|y − ŷ\| | Hataların **mutlak** ortalaması |
+| **MSE** | Mean Squared Error | (1/n)·Σ(y − ŷ)² | Hataların **karelerinin** ortalaması (büyük hatayı cezalandırır) |
+| **RMSE** | Root MSE | √MSE | MSE'nin **karekökü** (birimi geri getirir) |
+| **R²** | Determinasyon Katsayısı | — | **1'e yakın = iyi.** Modelin açıklama gücü (%) |
+
+> (y − ŷ) = **hata.** n = gözlem sayısı, y = gerçek, ŷ = tahmin.
+> Tuzak: **R² = 0.75** gören soru → bu bir **REGRESYON** metriğidir (sınıflandırma değil).
+
+---
+
+# BÖLÜM E — EK TANIMLAR (boşluk doldurma havuzu)
+
+- **Makine Öğrenmesi:** Açıkça programlanmadan, **verilerdeki örüntüleri** tanıyarak kendini geliştiren yapay zekâ dalı.
+- **Çapraz Doğrulama (Cross-Validation) NEDEN?** Başarının **şanslı bir bölünmeye** bağlı olmadığını kanıtlamak; daha **adil, güvenilir, ortalama** bir skor için.
+- **K-Fold CV:** Veri **K parçaya** bölünür; 1 parça test, K−1 parça eğitim; bu **K kez** tekrarlanır; **K skorun ortalaması** alınır.
+- **Normalizasyon:** Verileri **0–1** arasına ölçekler. **Standardizasyon:** Ortalamayı **0**, standart sapmayı **1** yapar (standart normal dağılım).
+- **Sürekli değeri sınıfa çevirme taktiği:** **Medyanı (ortanca) eşik** alıp, üstü=1 / altı=0 yapmak.
+- **Ölçeklendirme tuzağı (kavram):** Eğitimde `fit_transform`, **testte SADECE `transform`** (test verisi modele asla "öğretilmez" → veri sızıntısı önlenir).
+- **Lojistik Regresyon:** Sınıflandırma yapar; **Sigmoid** (S eğrisi) ile çıktıyı **0–1** arasına sıkıştırır.
+- **Doğrusal Regresyon:** b (intercept/bias) ve wᵢ (coef/ağırlık) öğrenir; **hata karelerinin toplamını minimize** eder.
+- **Hiyerarşik Kümeleme:** Küme sayısı **baştan verilmek zorunda değil**; ağaç (dendrogram) yapısı. **Agglomerative** (aşağıdan-yukarı, birleştirici) / **Divisive** (yukarıdan-aşağı, bölücü).
+- **İlişkilendirme / Apriori:** "Hangi ürünler birlikte alınır?" — **pazar sepeti analizi**; birliktelik kuralı madenciliği.
+- **EDA adımları:** Veri toplama → analiz → temizleme → dönüştürme → özellik seçimi → eğitim/test bölme. (Eksik veri, aykırı değer, kategorik→sayısal kodlama.)
+- **GridSearchCV:** Verilen tüm parametre kombinasyonlarını dener; en iyiyi `best_params_` ile döndürür.
+
+---
+
+# BÖLÜM F — MUTLAK EZBER LİSTESİ (sınav sabahı 5 dk bak)
+
+1. **Öklid:** `d = √[(x₂−x₁)² + (y₂−y₁)²]`
+2. **Minkowski:** p=1→Manhattan, **p=2→Öklid**, p→∞→Chebyshev
+3. **TP/TN/FP/FN:** Var-var / Yok-yok / Yok'a-var / Var'a-yok
+4. **Accuracy** = (TP+TN)/Toplam · **Precision** = TP/(TP+FP) · **Recall** = TP/(TP+FN)
+5. **F1** = 2TP/(2TP+FP+FN) — **dengesiz veride accuracy'den iyi**
+6. **Overfit:** train↑ test↓ (büyük fark) → karmaşıklığı azalt
+7. **Underfit:** train↓ test↓ → karmaşıklığı artır
+8. **K-Means K seçimi:** **Elbow (WCSS=inertia_) dirsek noktası** / Silhouette +1'e yakın
+9. **K-Means'te ölçeklendirme şart** çünkü **mesafe temelli**
+10. **SVM C:** C büyük→marjin dar→overfit; **overfit olursa C azalt**
+11. **Karar ağacı:** Kök=tüm veri (max bilgi kazancı), Yaprak=karar; overfit'i `max_depth` ile çöz
+12. **Lojistik Regresyon = sınıflandırma** (Sigmoid); **KNN ölçeklendirmeye duyarlı**
+
+---
+
+# BÖLÜM G — KENDİNİ TEST ET (cevaplar en altta)
+
+**Boşluk doldurma:**
+1. Minkowski uzaklığında p=2 alınırsa ______ uzaklığı elde edilir.
+2. KNN'de k=1 seçilirse model büyük ihtimalle ______ olur.
+3. "Yok'a var demek" ______ (kısaltma) ile gösterilir.
+4. K-Means'te ideal küme sayısı ______ yöntemiyle, grafikteki ______ noktasından bulunur.
+5. SVM'de hiperdüzleme en yakın noktalara ______ denir.
+6. Karar ağacında tüm veriyi temsil eden başlangıç düğümü ______ düğümüdür.
+7. Eğitim doğruluğu %99, test doğruluğu %70 ise model ______ olmuştur.
+8. MSE'nin karekökü alınırsa ______ elde edilir.
+9. Veriyi 0–1 aralığına ölçekleme işlemi ______, ortalamayı 0/std'yi 1 yapma ______'dır.
+10. Lojistik regresyon ______ fonksiyonunu kullanan bir ______ algoritmasıdır.
+
+**Klasik:**
+11. F1-skoru neden bazen accuracy'den daha güvenilirdir? Sayısal bir örnekle açıkla.
+12. Aşağıdaki tabloda (2,4)→A, (4,4)→A, (4,2)→B, (6,4)→B noktaları var. Yeni nokta **(3,3)**, **k=3** için Öklid ile sınıfını bul.
+
+---
+
+### CEVAP ANAHTARI
+1. Öklid · 2. Overfitting (ezber) · 3. FP (False Positive) · 4. Dirsek (Elbow) / dirsek (kırılma) · 5. Destek vektörü · 6. Kök (root) · 7. Overfitting · 8. RMSE · 9. Normalizasyon / Standardizasyon · 10. Sigmoid / sınıflandırma
+
+**11.** Dengesiz veride accuracy yanıltır. 990 sağlıklı + 10 hasta verisinde "herkes sağlıklı" diyen model %99 accuracy alır ama hiçbir hastayı yakalamaz (Recall=0 → F1=0). F1, Precision ve Recall'ı birlikte zorunlu kıldığından bu sahte başarıyı ele verir.
+
+**12.** (3,3)'e uzaklıklar:
+- (2,4)A: √[(3−2)²+(3−4)²]=√[1+1]=**1.41** (A)
+- (4,4)A: √[1+1]=**1.41** (A)
+- (4,2)B: √[1+1]=**1.41** (B)
+- (6,4)B: √[9+1]=**3.16** (B)
+En yakın k=3: 1.41(A), 1.41(A), 1.41(B) → **2 A, 1 B → Sınıf A.**
+*(İlk üçte üç tane 1.41 eşit; eşitlikte genelde küçük indeks/rastgele alınır — burada iki A bir B düştüğü için sonuç A. Sınavda eşitlik çıkarsa "tek sayı k seç / ağırlıklı oyla" notunu hatırla.)*
+
+---
+
+> **Çalışma sırası önerisi:** A1 → A2 → B1 → B2 → B3 → C → D → E → F (ezber) → G (test). Hesap sorularını (A1, A2) en az **birer kez elinle** çöz; gerisi okuyarak oturur. Başarılar! 🎯

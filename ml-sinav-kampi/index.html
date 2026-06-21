@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0b1220">
+<title>ML Sınav Kampı — 3 Günde Tam Puan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900;1000&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+<div id="toast" class="toast"></div>
+<div id="combo" class="combo-pop"></div>
+
+<div class="app" id="app">
+  <!-- Üst bar -->
+  <header class="topbar" id="topbar">
+    <div class="brand">
+      <div class="logo">🎓</div>
+      <div>ML Sınav Kampı<small>3 GÜNDE TAM PUAN</small></div>
+    </div>
+    <div class="stats-mini" id="statsMini"></div>
+  </header>
+
+  <!-- Görünüm konteyneri -->
+  <main id="view"></main>
+</div>
+
+<!-- Alt navigasyon -->
+<nav class="bottomnav" id="bottomnav"></nav>
+
+<!-- Veri bankaları (script src => file:// üzerinde CORS sorunu yaşamaz) -->
+<script src="data_ryz.js"></script>
+<script src="data_dt.js"></script>
+<script src="data_knn.js"></script>
+<script src="data_svm.js"></script>
+<!-- Konu anlatımı (müfredat) -->
+<script src="learn.js"></script>
+<!-- İyileştirilmiş birimler (learn.js'i ezer) -->
+<script src="learn_temeller.js"></script>
+<script src="learn_dt.js"></script>
+<!-- Görsel bileşen kütüphanesi -->
+<script src="visuals.js"></script>
+<!-- Motor -->
+<script src="app.js"></script>
+</body>
+</html>

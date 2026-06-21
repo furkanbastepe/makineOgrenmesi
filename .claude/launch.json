@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mlkamp",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8753", "--directory", "ml-sinav-kampi"],
+      "port": 8753
+    }
+  ]
+}
